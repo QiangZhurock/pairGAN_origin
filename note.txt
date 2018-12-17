@@ -1,0 +1,325 @@
+need to understand:
+1. got it: self.loss_idt_A = self.criterionIdt(self.idt_A, self.real_B) * lambda_B * lambda_idt
+2. should click two times to enter the function: self.loss_G_B = self.criterionGAN(self.netD_B(self.fake_A), True)
+self.real_label_var
+
+3. run collection style transfer.
+
+r_scheduler.LambdaLR
+https://www.cnblogs.com/king-lps/p/8665344.html
+
+
+https://www.cnblogs.com/J-K-Guo/p/7598339.html
+生成网络使用了这篇文章中的网络结构。判别器网络采用了70*70的PathGANs。
+　2.  训练细节
+
+　　　　<1> 两个操作使得模型训练更加稳定
+
+　　　　（1）对于LGAN使用最小二乘损失替换对数loss
+（2）在DX,DY中，使用先前生成的图片而不是最近生成的。使用一个能容纳50张图像的图像池。
+
+　　　　<2> λ的值设置为10.使用Adam优化求解，batch size为1.前100个epoch学习率设置为0.0002，后100个epoch学习率线性递减直至0.
+
+限制
+　　对颜色、纹理等的转换效果比较好，对多样性高的、多变的转换效果不好（如几何转换）。
+　　加上弱或半监督效果会更好。
+
+used 恒等映射，保护颜色
+
+4、cyc——class的乘法因子设置为10， 说明循环损失比鉴别损失更重要。
+5. detach int  backward_D_basic
+    如果我们有两个网络 A,B, 两个关系是这样的 y=A(x),z=B(y) 现在我们想用
+    z.backward() 来为 B 网络的参数来求梯度，但是又不想求 A 网络参数的梯度。我们可以这样：
+    # 第一种方法
+    y = A(x)
+    z = B(y.detach())
+    z.backward()
+--dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pariredCyclegan --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0
+
+python train.py --dataroot ./datasets/vangogh2photo --name vangogh2photo_cyclegan_secondTrain --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_secondTrain --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --continue_train
+
+python train.py --gpu_ids 0,1,2 --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pariredCyclegan --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --batchSize 1 --which_model_netG resnet_6blocks
+
+python train.py --gpu_ids 0,1,2 --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pariredCyclegan --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --batchSize 32
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pariredCyclegan --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --batchSize 32
+
+test
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan --model cycle_gan --phase test --no_dropout
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_128sizeTest --model cycle_gan --phase test --no_dropout --loadSize 128 --fineSize 128
+
+test
+python test.py --dataroot ./datasets/faceBtoStyleA --name addIdentityBLoss_second --model cycle_gan --phase test --no_dropout --loadSize 128 --fineSize 128
+addIdentityBLoss_second
+
+
+second train
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --continue_train --gpu_ids 0,1,2
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_secondTrain --model cycle_gan --no_dropout --loadSize 256 --fineSize 256 --display_id 0 --continue_train --gpu_ids 0,1,2
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_newFaceTrain --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0,1,2
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_thirdFaceTrain_usedropout --model cycle_gan --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0,1,2 --which_model_netD=n_layers --n_layers_D=4
+
+fourth train:
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_fourthFaceTrain_trainDtwotimes --model cycle_gan --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0,1,2 --which_model_netD=n_layers --n_layers_D=4 --no_dropout
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_lessPara --model cycle_gan --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_lessPara --model cycle_gan --loadSize 128 --fineSize 128 --display_id 0
+
+GAN:
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_lessPara --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD pixel
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_lessPara --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD pixel --which_model_netG SRN --gpu_ids 2
+
+has tried GAN
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_Model --m<=el GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD pixel --which_model_netG SRN --gpu_ids 2
+
+need to try GAN:
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_6resnet_pixel --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD pixel --which_model_netG resnet_6blocks --gpu_ids 2
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_6resnet_basic --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD basic --which_model_netG resnet_6blocks --gpu_ids 2
+
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_128unet_basic --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD basic --which_model_netG unet_128 --gpu_ids 2
+
+dont't run: python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_256unet_basic --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD basic --which_model_netG unet_256 --gpu_ids 2
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_9resnet_basic --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD basic --which_model_netG resnet_9blocks --gpu_ids 2
+
+no.5
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GANFC_pixel --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD pixel --which_model_netG SRN --gpu_ids 0
+
+this is in IDE SRN_FC + basic
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GANFC_Model --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD basic --which_model_netG SRN --gpu_ids 0
+
+
+just use 6blocks for 128 image size, and use basic D based on SRN paper.
+
+0906 run:
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_9resnet_basic_0906_addVgg --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD basic --which_model_netG resnet_9blocks --gpu_ids 1
+GAN test
+test
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_9resnet_basic_0906_addVgg --model GAN --phase test --no_dropout --loadSize 128 --fineSize 128 --which_model_netD basic --which_model_netG resnet_9blocks
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_9resnet_basic_0906_addVgg --model GAN --phase test --no_dropout --loadSize 128 --fineSize 128
+
+this one is right, how can i find the bug, see github issue and then compare the para when running test and train and found that they are different in no_dropout!!
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_9resnet_basic_0906_addVgg --model GAN --phase test --loadSize 128 --fineSize 128 --which_model_netD basic --which_model_netG resnet_9blocks
+
+0910 run cycleGAN:
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_newVgg_0910 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_newVgg_0910 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --continue_train
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_newVgg_0910 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --continue_train
+
+0912 run cycleGAN two styles:
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_0912 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --continue_train
+
+0914: test one style cyclegan local scratch
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_newVgg_0910 --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+0914 run cycleGAN two styles, no pool on cs/vml4:
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_0914_noPool --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0
+
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_0914_noPool_l2_3000 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --loss_type_F l2 
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_0914_noPool_full_3000 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --loss_type_F full
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_0914_noPool_no_identity_3000 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --loss_type_F no_identity
+
+1000 styles
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_1000Styles_1019_noPool_full --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --loss_type_F full
+
+3 styles
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_3Styles_1019_noPool_full --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --loss_type_F full
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_1019_noPool_full --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --loss_type_F full
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_1019_noPool_full  --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_1Styles_1019_noPool_full_1000 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --loss_type_F full
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_udnieAndCandy_1019_noPool_full --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --loss_type_F full
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_udnieAndCandy_1019_noPool_full  --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+
+0915: test two style cyclegan cs/vml4/record/results
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_0912 --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_0914_noPool --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_1000Styles_1019_noPool_full --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_3Styles_1019_noPool_full --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_1019_noPool_full --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_1Styles_1019_noPool_full_1000 --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_0914_noPool_full_3000  --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+retrain 2 styles
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_1024_noPool_full_20epoch --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --loss_type_F full
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_1024_noPool_full_20epoch --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_1024_noPool_full_50epoch --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --loss_type_F full
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_udnieAndCandy_1024_noPool_full_20epoch --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --loss_type_F full
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_udnieAndCandy_1024_noPool_full_20epoch  --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_udnieAndCandy_1024_noPool_full_5epoch --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --loss_type_F full
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_udnieAndCandy_1024_noPool_full_5epoch  --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_udnieAndCandy_1024_noPool_full_25epoch --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --loss_type_F full
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_udnieAndCandy_1024_noPool_full_28epoch --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --loss_type_F full
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_udnieAndCandy_1024_noPool_full_27epoch --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --loss_type_F full
+
+two styles mosaic
+
+pixel_D
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_mosaicAndvan_1026_noPool_full_200epoch_pixel_D --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --loss_type_F full --which_model_netD pixel
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_mosaicAndvan_1026_noPool_full_200epoch_pixel_D --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+patch_D
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_mosaicAndvan_1026_noPool_full_200epoch_patch_D --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --loss_type_F full
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_2Styles_mosaicAndvan_1026_noPool_full_200epoch_patch_D --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+cycleGAN fro style removal
+
+python train.py --dataroot ./datasets/face --name cycleGANStyleRemoval --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --batchSize 1
+python test.py --dataroot ./datasets/face --name cycleGANStyleRemoval --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/face --name cycleGANStyleRemoval-1024 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --batchSize 1
+python test.py --dataroot ./datasets/face --name cycleGANStyleRemoval-1024 --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/face --name cycleGANStyleRemoval-1026_unpaired --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --batchSize 1
+python test.py --dataroot ./datasets/face --name cycleGANStyleRemoval-1026_unpaired --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+pixel for style removal
+
+python train.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0 --display_id 0
+
+python train.py --dataroot ./datasets/train_AB --name faceAB_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0 --display_id 0 --loadSize 128 --fineSize 128
+python train.py --dataroot ./datasets/train_AB --name faceAB_pix2pix_128 --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0 --display_id 0 --loadSize 128 --fineSize 128 --gpu_ids 1
+
+python train.py --dataroot ./datasets/train_AB --name SRNe_pix2pix_128Style --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0 --display_id 0 --gpu_ids 0
+
+GAN for style removal
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_0914_noPool_full_3000 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --loss_type_F full --continue_train
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_1023_noPool_full_3000-forGAN --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --loss_type_F full
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_1023_noPool_full_3000-forGAN_second --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --loss_type_F full
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_1023_noPool_full_3000-forGAN_second --model cycle_gan  --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_twoStyles_1023_noPool_full_3000-forGAN --model cycle_gan  --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_9resnet_basic_1023_addVgg --model GAN --loadSize 128 --fineSize 128 --display_id 0 --which_model_netD basic --which_model_netG resnet_9blocks --gpu_ids 1
+
+GAN test
+test
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_9resnet_basic_0906_addVgg --model GAN --phase test --no_dropout --loadSize 128 --fineSize 128 --which_model_netD basic --which_model_netG resnet_9blocks
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_9resnet_basic_0906_addVgg --model GAN --phase test --no_dropout --loadSize 128 --fineSize 128 --which_model_netD basic --which_model_netG resnet_9blocks --norm instance
+
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_GAN_9resnet_basic_1023_addVgg --model GAN --phase test --no_dropout --loadSize 128 --fineSize 128
+
+
+retrain cyclegan and pixel to piexl for style transfer
+
+python train.py --dataroot ./datasets/face --name cycleGANStyleTransfer --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2 --batchSize 1
+python test.py --dataroot ./datasets/face --name cycleGANStyleTransfer --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/face --name cycleGANStyleRemoval-1024 --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --batchSize 1
+python test.py --dataroot ./datasets/face --name cycleGANStyleRemoval-1024 --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/face --name cycleGANStyleTransfer_la_muse_paired --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --batchSize 1
+python test.py --dataroot ./datasets/face --name cycleGANStyleTransfer_la_muse_paired --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/face --name cycleGANStyleTransfer_la_muse_unpaired --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --batchSize 1
+python test.py --dataroot ./datasets/face --name cycleGANStyleTransfer_la_muse_unpaired --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/face --name cycleGANStyleTransfer_la_muse_paired_40epoch --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0 --batchSize 1
+python test.py --dataroot ./datasets/face --name cycleGANStyleTransfer_la_muse_paired_40epoch --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python train.py --dataroot ./datasets/face --name cycleGANStyleTransfer_la_muse_unpaired_40epoch --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1 --batchSize 1
+python test.py --dataroot ./datasets/face --name cycleGANStyleTransfer_la_muse_unpaired_40epoch --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+
+pixel for style transfer
+
+python train.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0 --display_id 0
+
+python train.py --dataroot ./datasets/train_AB --name faceAB_pix2pix_style_transfer --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0 --display_id 0 --gpu_ids 0
+python train.py --dataroot ./datasets/train_AB --name faceAB_pix2pix_style_removal_120epoch --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0 --display_id 0 --gpu_ids 1
+
+python test.py --dataroot ./datasets/train_AB --name faceAB_pix2pix_style_removal_120epoch --model pix2pix --which_model_netG unet_256 --which_direction BtoA --dataset_mode aligned --norm batch
+
+python train.py --dataroot ./datasets/train_AB --name faceAB_pix2pix_style_transfer --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0 --display_id 0 --gpu_ids 2
+
+python test.py --dataroot ./datasets/train_AB --name faceAB_pix2pix_style_transfer --model pix2pix --which_model_netG unet_256 --which_direction BtoA --dataset_mode aligned --norm batch
+
+python train.py --dataroot ./datasets/train_AB --name faceAB_pix2pix_style_transfer_lamuse --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --dataset_mode aligned --no_lsgan --norm batch --pool_size 0 --display_id 0 --gpu_ids 2
+
+python test.py --dataroot ./datasets/train_AB --name faceAB_pix2pix_style_transfer_lamuse --model pix2pix --which_model_netG unet_256 --which_direction BtoA --dataset_mode aligned --norm batch
+
+
+1009
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_newVgg_0910 --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+1012 train zhiqin
+
+python train.py --dataroot ./datasets/vangogh2photo --name gray_candy --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0
+
+python train.py --dataroot ./datasets/monet2photo --name color_candy --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1    gray, 128, img_a
+
+python train.py --dataroot ./datasets/ukiyoe2photo --name color_only128_candy --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 2   color, 123
+
+test:
+python test.py --dataroot ./datasets/vangogh2photo --name gray_candy --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/monet2photo --name color_candy --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/ukiyoe2photo --name color_only128_candy --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128
+
+python test.py --dataroot ./datasets/ukiyoe2photo --name color_only128_candy --model cycle_gan  --phase test --no_dropout --loadSize 128 --fineSize 128  --dataset_mode unaligned
+
+python test.py --dataroot ./datasets/ukiyoe2photo/testB --name color_only128_candy --model test  --phase test --no_dropout --resize_or_crop scale_width --fineSize 1028 --loadSize 1028 --dataset_mode single
+
+python test.py --dataroot ./datasets/ukiyoe2photo/testB --name color_candy --model test  --phase test --no_dropout --resize_or_crop scale_width --fineSize 1028 --loadSize 1028 --dataset_mode single
+
+python test.py --dataroot ./datasets/monet2photo --name  color_candy --model cycle_gan --phase test --no_dropout --loadSize 512 --fineSize 512 --resize_or_crop scale_width --fineSize 512
+
+work in pairedCycleGAN
+python test.py --dataroot ./datasets/faceBtoStyleA --name faceBtoStyleA_pairedCyclegan_newVgg_0910 --model cycle_gan --phase test --no_dropout --loadSize 512 --fineSize 512
+
+
+1015 train:
+python train.py --dataroot ./datasets/vangogh2photo --name vangogh2photo_cycleGAN --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 0,2 --batchSize 4
+
+python train.py --dataroot ./datasets/horse2zebra --name horse2zebra_cycleGAN --model cycle_gan --no_dropout --loadSize 128 --fineSize 128 --display_id 0 --gpu_ids 1,2 --batchSize 1
+horse2zebra
+
+python test.py --dataroot ./datasets/horse2zebra --name horse2zebra_cycleGAN --model cycle_gan --phase test --no_dropout --loadSize 128 --fineSize 128
+
+train horse split
+python train.py --dataroot ./datasets/horseSplit --name horse2Split_cycleGAN --model cycle_gan --no_dropout --resize_or_crop none --display_id 0 --gpu_ids 2 --batchSize 1
+
+python test.py --dataroot ./datasets/horseSplit --name horse2Split_cycleGAN --model cycle_gan --phase test --no_dropout --loadSize 128 --fineSize 128
+horse2Split_cycleGAN
+test it
+
